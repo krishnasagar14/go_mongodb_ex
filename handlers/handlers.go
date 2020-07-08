@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	b64 "encoding/base64"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -12,6 +13,41 @@ import (
 )
 
 func GetUserHandler(resp http.ResponseWriter, req *http.Request) {
+	proto_body_raw, _ := req.URL.Query()["proto_body"]
+	if len(proto_body_raw[0]) < 1 {
+		log.Println("Proto body is missing")
+		resp.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	proto_body, err := b64.URLEncoding.DecodeString(proto_body_raw[0])
+	if err != nil {
+		log.Println("Proto body decoding problem found: %v", err)
+		resp.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	request := &server_proto.GetUserRequest{}
+	proto.Unmarshal(proto_body, request)
+	user_id := request.GetUserId()
+	if user_id == "" {
+		log.Println("No user id found")
+		resp.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	user_record := db.GetUserViaId(user_id)
+	res := &server_proto.UserDetailsResponse{
+		UserId:      user_record.Id.Hex(),
+		EmployeeId:  user_record.EmployeeId,
+		FirstName:   user_record.FirstName,
+		LastName:    user_record.LastName,
+		Email:       user_record.Email,
+		Designation: user_record.Designation,
+	}
+	response, err := proto.Marshal(res)
+	if err != nil {
+		log.Println("Unable to marshal response for get user: %v", err)
+	}
+	resp.Write(response)
 
 }
 
@@ -20,6 +56,8 @@ func UpdateUserHandler(resp http.ResponseWriter, req *http.Request) {
 	data, err := ioutil.ReadAll(req.Body)
 	if err != nil {
 		log.Println("Unable to read request message for update user: %v", err)
+		resp.WriteHeader(http.StatusBadRequest)
+		return
 	}
 	proto.Unmarshal(data, request)
 	updated_user := db.UpdateUser(request)
@@ -34,7 +72,10 @@ func UpdateUserHandler(resp http.ResponseWriter, req *http.Request) {
 	response, err := proto.Marshal(res)
 	if err != nil {
 		log.Println("Unable to marshal response for update user: %v", err)
+		resp.WriteHeader(http.StatusBadRequest)
+		return
 	}
+	resp.WriteHeader(http.StatusOK)
 	resp.Write(response)
 }
 
@@ -43,6 +84,8 @@ func CreateUserHandler(resp http.ResponseWriter, req *http.Request) {
 	data, err := ioutil.ReadAll(req.Body)
 	if err != nil {
 		log.Println("Unable to read request message for create user: %v", err)
+		resp.WriteHeader(http.StatusBadRequest)
+		return
 	}
 	proto.Unmarshal(data, request)
 	new_id, emp_id := db.InsertNewUser(request)
@@ -57,6 +100,9 @@ func CreateUserHandler(resp http.ResponseWriter, req *http.Request) {
 	response, err := proto.Marshal(res)
 	if err != nil {
 		log.Println("Unable to marshal response for create user: %v", err)
+		resp.WriteHeader(http.StatusBadRequest)
+		return
 	}
+	resp.WriteHeader(http.StatusCreated)
 	resp.Write(response)
 }

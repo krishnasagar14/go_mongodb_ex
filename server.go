@@ -22,7 +22,7 @@ func main() {
 
 	router.Use(mw.LoggingMiddleware)
 
-	router.HandleFunc("/assignment/user", handlers.GetUserHandler).Methods("GET").Queries("proto_body", "{proto_body}")
+	router.HandleFunc("/assignment/user", handlers.GetUserHandler).Methods("GET")
 	router.HandleFunc("/assignment/user", handlers.UpdateUserHandler).Methods("PATCH")
 	router.HandleFunc("/assignment/user", handlers.CreateUserHandler).Methods("POST")
 

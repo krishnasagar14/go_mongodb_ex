@@ -9,6 +9,10 @@ message CreateUserRequest {
 	string designation = 4;
 }
 
+message GetUserRequest {
+	string user_id = 1;
+}
+
 message UpdateUserRequest {
 	string user_id = 1;
 	string email = 2;
