@@ -52,6 +52,20 @@ func InsertNewUser(data *server_proto.CreateUserRequest) (string, string) {
 	return insert_data.Id.Hex(), insert_data.EmployeeId
 }
 
+func GetUserViaId(user_id string) models.UserStruct {
+	user_collection := get_user_collection()
+
+	id_obj, _ := primitive.ObjectIDFromHex(user_id)
+	filter := bson.M{"_id": id_obj}
+
+	var res_user models.UserStruct
+	err := user_collection.FindOne(context.TODO(), filter).Decode(&res_user)
+	if err != nil {
+		log.Println(err)
+	}
+	return res_user
+}
+
 func UpdateUser(data *server_proto.UpdateUserRequest) models.UserStruct {
 	user_collection := get_user_collection()
 
@@ -70,7 +84,5 @@ func UpdateUser(data *server_proto.UpdateUserRequest) models.UserStruct {
 	if err != nil {
 		log.Println(err)
 	}
-	var res_user models.UserStruct
-	err = user_collection.FindOne(context.TODO(), filter).Decode(&res_user)
-	return res_user
+	return GetUserViaId(data.GetUserId())
 }
