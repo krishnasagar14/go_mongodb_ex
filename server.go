@@ -14,13 +14,13 @@ import (
 )
 
 func main() {
-	DB.ConnectDB()
+	db.ConnectDB()
 
 	port_no := 9000
 	fmt.Println("Starting server on port:", port_no)
 	router := mux.NewRouter().StrictSlash(true)
 
-	router.Use(MW.LoggingMiddleware)
+	router.Use(mw.LoggingMiddleware)
 
 	router.HandleFunc("/assignment/user", handlers.GetUserHandler).Methods("GET").Queries("proto_body", "{proto_body}")
 	router.HandleFunc("/assignment/user", handlers.UpdateUserHandler).Methods("PATCH")

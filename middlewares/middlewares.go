@@ -1,4 +1,4 @@
-package MW
+package mw
 
 import (
 	"log"

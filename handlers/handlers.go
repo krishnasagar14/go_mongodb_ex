@@ -22,7 +22,7 @@ func UpdateUserHandler(resp http.ResponseWriter, req *http.Request) {
 		log.Println("Unable to read request message for update user: %v", err)
 	}
 	proto.Unmarshal(data, request)
-	updated_user := DB.UpdateUser(request)
+	updated_user := db.UpdateUser(request)
 	res := &server_proto.UserDetailsResponse{
 		UserId:      updated_user.Id.Hex(),
 		EmployeeId:  updated_user.EmployeeId,
@@ -45,7 +45,7 @@ func CreateUserHandler(resp http.ResponseWriter, req *http.Request) {
 		log.Println("Unable to read request message for create user: %v", err)
 	}
 	proto.Unmarshal(data, request)
-	new_id, emp_id := DB.InsertNewUser(request)
+	new_id, emp_id := db.InsertNewUser(request)
 	res := &server_proto.UserDetailsResponse{
 		UserId:      new_id,
 		EmployeeId:  emp_id,
