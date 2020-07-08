@@ -10,14 +10,8 @@ import (
 
 	"go_mongodb_ex/db"
 	"go_mongodb_ex/handlers"
+	"go_mongodb_ex/middlewares"
 )
-
-func LoggingMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
-		log.Println(req.Method, req.RequestURI)
-		next.ServeHTTP(resp, req)
-	})
-}
 
 func main() {
 	DB.ConnectDB()
@@ -26,7 +20,7 @@ func main() {
 	fmt.Println("Starting server on port:", port_no)
 	router := mux.NewRouter().StrictSlash(true)
 
-	router.Use(LoggingMiddleware)
+	router.Use(MW.LoggingMiddleware)
 
 	router.HandleFunc("/assignment/user", handlers.GetUserHandler).Methods("GET").Queries("proto_body", "{proto_body}")
 	router.HandleFunc("/assignment/user", handlers.UpdateUserHandler).Methods("PATCH")
