@@ -14,7 +14,7 @@ import (
 
 func GetUserHandler(resp http.ResponseWriter, req *http.Request) {
 	proto_body_raw, _ := req.URL.Query()["proto_body"]
-	if len(proto_body_raw[0]) < 1 {
+	if proto_body_raw == nil || len(proto_body_raw[0]) < 1 {
 		log.Println("Proto body is missing")
 		resp.WriteHeader(http.StatusBadRequest)
 		return
@@ -31,12 +31,12 @@ func GetUserHandler(resp http.ResponseWriter, req *http.Request) {
 	user_id := request.GetUserId()
 	if user_id == "" {
 		log.Println("No user id found")
-		resp.WriteHeader(http.StatusBadRequest)
+		resp.WriteHeader(http.StatusNotFound)
 		return
 	}
 	user_record, err := db.GetUserViaId(user_id)
 	if err != nil {
-		resp.WriteHeader(http.StatusBadRequest)
+		resp.WriteHeader(http.StatusNotFound)
 		return
 	}
 	res := &server_proto.UserDetailsResponse{
@@ -91,6 +91,11 @@ func UpdateUserHandler(resp http.ResponseWriter, req *http.Request) {
 
 func CreateUserHandler(resp http.ResponseWriter, req *http.Request) {
 	request := &server_proto.CreateUserRequest{}
+	if req.Body == nil {
+		log.Println("Unable to read request message for create user")
+		resp.WriteHeader(http.StatusBadRequest)
+		return
+	}
 	data, err := ioutil.ReadAll(req.Body)
 	if err != nil {
 		log.Println("Unable to read request message for create user: %v", err)
