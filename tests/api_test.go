@@ -2,9 +2,11 @@ package main
 
 import (
 	"bytes"
+	b64 "encoding/base64"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"testing"
 
@@ -79,6 +81,29 @@ func TestPatchUserAPI(t *testing.T) {
 	patch_response := httptest.NewRecorder()
 	test_router.ServeHTTP(patch_response, act_request)
 	assert.Equal(t, http.StatusOK, patch_response.Code, "Correct response code 200 expected")
+}
+
+func TestGetUserAPI(t *testing.T) {
+	response := make_post_request()
+	data, _ := ioutil.ReadAll(response.Body)
+	user_details := &server_proto.UserDetailsResponse{}
+	proto.Unmarshal(data, user_details)
+
+	request := &server_proto.GetUserRequest{
+		UserId: user_details.GetUserId(),
+	}
+	p_body, _ := proto.Marshal(request)
+	proto_body := b64.URLEncoding.EncodeToString(p_body)
+	api_url := "/assignment/user"
+	u, _ := url.Parse(api_url)
+	q, _ := url.ParseQuery(u.RawQuery)
+	q.Add("proto_body", proto_body)
+	u.RawQuery = q.Encode()
+
+	act_request, _ := http.NewRequest("GET", u.String(), nil)
+	get_response := httptest.NewRecorder()
+	test_router.ServeHTTP(get_response, act_request)
+	assert.Equal(t, http.StatusOK, get_response.Code, "Correct response code 200 expected")
 }
 
 func TestMain(m *testing.M) {
