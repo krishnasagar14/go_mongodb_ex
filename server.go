@@ -6,11 +6,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gorilla/mux"
-
 	"go_mongodb_ex/db"
-	"go_mongodb_ex/handlers"
 	"go_mongodb_ex/middlewares"
+	"go_mongodb_ex/routers"
 )
 
 func main() {
@@ -18,13 +16,8 @@ func main() {
 
 	port_no := 9000
 	fmt.Println("Starting server on port:", port_no)
-	router := mux.NewRouter().StrictSlash(true)
-
+	router := main_routes.RegisterRouter()
 	router.Use(mw.LoggingMiddleware)
-
-	router.HandleFunc("/assignment/user", handlers.GetUserHandler).Methods("GET")
-	router.HandleFunc("/assignment/user", handlers.UpdateUserHandler).Methods("PATCH")
-	router.HandleFunc("/assignment/user", handlers.CreateUserHandler).Methods("POST")
 
 	server := &http.Server{
 		Handler:      router,

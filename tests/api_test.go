@@ -15,21 +15,13 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"go_mongodb_ex/db"
-	"go_mongodb_ex/handlers"
 	"go_mongodb_ex/proto"
+	"go_mongodb_ex/routers"
 )
 
 const DB_NAME string = "test_local_db"
 
 var test_router *mux.Router
-
-func PrepareRouter() *mux.Router {
-	router := mux.NewRouter()
-	router.HandleFunc("/assignment/user", handlers.GetUserHandler).Methods("GET")
-	router.HandleFunc("/assignment/user", handlers.UpdateUserHandler).Methods("PATCH")
-	router.HandleFunc("/assignment/user", handlers.CreateUserHandler).Methods("POST")
-	return router
-}
 
 func TestGetEmptyUserAPI(t *testing.T) {
 	request, _ := http.NewRequest("GET", "/assignment/user", nil)
@@ -108,7 +100,7 @@ func TestGetUserAPI(t *testing.T) {
 
 func TestMain(m *testing.M) {
 	db.ConnectDB(DB_NAME)
-	test_router = PrepareRouter()
+	test_router = main_routes.RegisterRouter()
 	m.Run()
 	db.DropDB(DB_NAME)
 	os.Exit(0)
