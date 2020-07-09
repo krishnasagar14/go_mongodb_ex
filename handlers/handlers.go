@@ -59,6 +59,11 @@ func GetUserHandler(resp http.ResponseWriter, req *http.Request) {
 
 func UpdateUserHandler(resp http.ResponseWriter, req *http.Request) {
 	request := &server_proto.UpdateUserRequest{}
+	if req.Body == nil {
+		log.Println("Unable to read request message for update user")
+		resp.WriteHeader(http.StatusBadRequest)
+		return
+	}
 	data, err := ioutil.ReadAll(req.Body)
 	if err != nil {
 		log.Println("Unable to read request message for update user: %v", err)
