@@ -34,7 +34,11 @@ func GetUserHandler(resp http.ResponseWriter, req *http.Request) {
 		resp.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	user_record := db.GetUserViaId(user_id)
+	user_record, err := db.GetUserViaId(user_id)
+	if err != nil {
+		resp.WriteHeader(http.StatusBadRequest)
+		return
+	}
 	res := &server_proto.UserDetailsResponse{
 		UserId:      user_record.Id.Hex(),
 		EmployeeId:  user_record.EmployeeId,
@@ -46,6 +50,8 @@ func GetUserHandler(resp http.ResponseWriter, req *http.Request) {
 	response, err := proto.Marshal(res)
 	if err != nil {
 		log.Println("Unable to marshal response for get user: %v", err)
+		resp.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 	resp.Write(response)
 
@@ -60,7 +66,11 @@ func UpdateUserHandler(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 	proto.Unmarshal(data, request)
-	updated_user := db.UpdateUser(request)
+	updated_user, err := db.UpdateUser(request)
+	if err != nil {
+		resp.WriteHeader(http.StatusBadRequest)
+		return
+	}
 	res := &server_proto.UserDetailsResponse{
 		UserId:      updated_user.Id.Hex(),
 		EmployeeId:  updated_user.EmployeeId,
@@ -72,7 +82,7 @@ func UpdateUserHandler(resp http.ResponseWriter, req *http.Request) {
 	response, err := proto.Marshal(res)
 	if err != nil {
 		log.Println("Unable to marshal response for update user: %v", err)
-		resp.WriteHeader(http.StatusBadRequest)
+		resp.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	resp.WriteHeader(http.StatusOK)
@@ -89,6 +99,10 @@ func CreateUserHandler(resp http.ResponseWriter, req *http.Request) {
 	}
 	proto.Unmarshal(data, request)
 	new_id, emp_id := db.InsertNewUser(request)
+	if new_id == "" || emp_id == "" {
+		resp.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 	res := &server_proto.UserDetailsResponse{
 		UserId:      new_id,
 		EmployeeId:  emp_id,
@@ -100,7 +114,7 @@ func CreateUserHandler(resp http.ResponseWriter, req *http.Request) {
 	response, err := proto.Marshal(res)
 	if err != nil {
 		log.Println("Unable to marshal response for create user: %v", err)
-		resp.WriteHeader(http.StatusBadRequest)
+		resp.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	resp.WriteHeader(http.StatusCreated)

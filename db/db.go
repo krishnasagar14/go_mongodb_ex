@@ -28,6 +28,7 @@ func ConnectDB() {
 	}
 	db = client.Database("local_db")
 	log.Println("Connected to database successfully !!!")
+	// TODO: DB connection management
 }
 
 func get_user_collection() *mongo.Collection {
@@ -48,11 +49,12 @@ func InsertNewUser(data *server_proto.CreateUserRequest) (string, string) {
 	_, err := user_collection.InsertOne(context.TODO(), insert_data)
 	if err != nil {
 		log.Println(err)
+		return "", ""
 	}
 	return insert_data.Id.Hex(), insert_data.EmployeeId
 }
 
-func GetUserViaId(user_id string) models.UserStruct {
+func GetUserViaId(user_id string) (models.UserStruct, error) {
 	user_collection := get_user_collection()
 
 	id_obj, _ := primitive.ObjectIDFromHex(user_id)
@@ -63,10 +65,10 @@ func GetUserViaId(user_id string) models.UserStruct {
 	if err != nil {
 		log.Println(err)
 	}
-	return res_user
+	return res_user, err
 }
 
-func UpdateUser(data *server_proto.UpdateUserRequest) models.UserStruct {
+func UpdateUser(data *server_proto.UpdateUserRequest) (models.UserStruct, error) {
 	user_collection := get_user_collection()
 
 	id, _ := primitive.ObjectIDFromHex(data.GetUserId())
