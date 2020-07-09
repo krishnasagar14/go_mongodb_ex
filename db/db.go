@@ -15,7 +15,7 @@ import (
 
 var db *mongo.Database
 
-func ConnectDB() {
+func ConnectDB(db_name string) {
 	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
 	client, err := mongo.Connect(context.TODO(), clientOptions)
 	if err != nil {
@@ -26,9 +26,14 @@ func ConnectDB() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	db = client.Database("local_db")
+	db = client.Database(db_name)
 	log.Println("Connected to database successfully !!!")
 	// TODO: DB connection management
+}
+
+func DropDB(db_name string) {
+	db.Drop(context.TODO())
+	log.Println("Dropped database successfully !!!")
 }
 
 func get_user_collection() *mongo.Collection {

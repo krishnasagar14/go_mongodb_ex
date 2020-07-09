@@ -14,7 +14,7 @@ import (
 )
 
 func main() {
-	db.ConnectDB()
+	db.ConnectDB("local_db")
 
 	port_no := 9000
 	fmt.Println("Starting server on port:", port_no)
