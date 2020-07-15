@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"go_mongodb_ex/db"
@@ -12,7 +13,10 @@ import (
 )
 
 func main() {
-	db.ConnectDB("local_db")
+	err := db.ConnectDB("local_db")
+	if err != nil {
+		os.Exit(1)
+	}
 
 	portNo := 9000
 	fmt.Println("Starting server on port:", portNo)

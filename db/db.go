@@ -15,19 +15,22 @@ import (
 
 var db *mongo.Database
 
-func ConnectDB(dbName string) {
+func ConnectDB(dbName string) error {
 	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
 	client, err := mongo.Connect(context.TODO(), clientOptions)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		return err
 	}
 	// Double sure connection
 	err = client.Ping(context.TODO(), nil)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		return err
 	}
 	db = client.Database(dbName)
 	log.Println("Connected to database successfully !!!")
+	return nil
 	// TODO: DB connection management
 }
 
