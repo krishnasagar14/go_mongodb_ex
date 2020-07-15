@@ -39,13 +39,19 @@ func GetUserHandler(resp http.ResponseWriter, req *http.Request) {
 		resp.WriteHeader(http.StatusNotFound)
 		return
 	}
+	empRecord, err := db.GetEmployeeViaUserId(user_id)
+	if err != nil {
+		resp.WriteHeader(http.StatusGone)
+		return
+	}
+
 	res := &server_proto.UserDetailsResponse{
 		UserId:      userRecord.Id.Hex(),
-		EmployeeId:  userRecord.EmployeeId,
 		FirstName:   userRecord.FirstName,
 		LastName:    userRecord.LastName,
 		Email:       userRecord.Email,
-		Designation: userRecord.Designation,
+		Designation: empRecord.Designation,
+		EmployeeId: empRecord.Id.Hex(),
 	}
 	response, err := proto.Marshal(res)
 	if err != nil {
@@ -76,13 +82,19 @@ func UpdateUserHandler(resp http.ResponseWriter, req *http.Request) {
 		resp.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	empRecord, err := db.GetEmployeeViaUserId(request.GetUserId())
+	if err != nil {
+		resp.WriteHeader(http.StatusGone)
+		return
+	}
+
 	res := &server_proto.UserDetailsResponse{
 		UserId:      updatedUser.Id.Hex(),
-		EmployeeId:  updatedUser.EmployeeId,
 		FirstName:   updatedUser.FirstName,
 		LastName:    updatedUser.LastName,
 		Email:       updatedUser.Email,
-		Designation: updatedUser.Designation,
+		Designation: empRecord.Designation,
+		EmployeeId: empRecord.Id.Hex(),
 	}
 	response, err := proto.Marshal(res)
 	if err != nil {

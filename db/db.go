@@ -43,23 +43,38 @@ func getUserCollection() *mongo.Collection {
 	return db.Collection("User")
 }
 
+func getEmployeeCollection() *mongo.Collection {
+	return db.Collection("Employee")
+}
+
 func InsertNewUser(data *server_proto.CreateUserRequest) (string, string) {
 	userCollection := getUserCollection()
+	employeeCollection := getEmployeeCollection()
 
-	insertData := models.UserStruct{
+	insertUserData := models.UserStruct{
 		Id:          primitive.NewObjectID(),
-		EmployeeId:  models.GetEmployeeSeqNumber(),
 		FirstName:   data.GetFirstName(),
 		LastName:    data.GetLastName(),
 		Email:       data.GetEmail(),
-		Designation: data.GetDesignation(),
 	}
-	_, err := userCollection.InsertOne(context.TODO(), insertData)
+	_, err := userCollection.InsertOne(context.TODO(), insertUserData)
 	if err != nil {
 		log.Println(err)
 		return "", ""
 	}
-	return insertData.Id.Hex(), insertData.EmployeeId
+
+	insertEmpData := models.EmployeeStruct{
+		Id: primitive.NewObjectID(),
+		UserId: insertUserData.Id.Hex(),
+		Designation: data.GetDesignation(),
+	}
+	_, err = employeeCollection.InsertOne(context.TODO(), insertEmpData)
+	if err != nil {
+		log.Println(err)
+		return "", ""
+	}
+
+	return insertUserData.Id.Hex(), insertEmpData.Id.Hex()
 }
 
 func GetUserViaId(userId string) (models.UserStruct, error) {
@@ -74,6 +89,18 @@ func GetUserViaId(userId string) (models.UserStruct, error) {
 		log.Println(err)
 	}
 	return resUser, err
+}
+
+func GetEmployeeViaUserId(userId string) (models.EmployeeStruct, error) {
+	employeeCollection := getEmployeeCollection()
+
+	filter := bson.M{"user_id": userId}
+	var resEmp models.EmployeeStruct
+	err := employeeCollection.FindOne(context.TODO(), filter).Decode(&resEmp)
+	if err != nil {
+		log.Println(err)
+	}
+	return resEmp, err
 }
 
 func UpdateUser(data *server_proto.UpdateUserRequest) (models.UserStruct, error) {
