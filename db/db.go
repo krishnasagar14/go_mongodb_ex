@@ -15,7 +15,7 @@ import (
 
 var db *mongo.Database
 
-func ConnectDB(db_name string) {
+func ConnectDB(dbName string) {
 	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
 	client, err := mongo.Connect(context.TODO(), clientOptions)
 	if err != nil {
@@ -26,24 +26,24 @@ func ConnectDB(db_name string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	db = client.Database(db_name)
+	db = client.Database(dbName)
 	log.Println("Connected to database successfully !!!")
 	// TODO: DB connection management
 }
 
-func DropDB(db_name string) {
+func DropDB() {
 	db.Drop(context.TODO())
 	log.Println("Dropped database successfully !!!")
 }
 
-func get_user_collection() *mongo.Collection {
+func getUserCollection() *mongo.Collection {
 	return db.Collection("User")
 }
 
 func InsertNewUser(data *server_proto.CreateUserRequest) (string, string) {
-	user_collection := get_user_collection()
+	userCollection := getUserCollection()
 
-	insert_data := models.UserStruct{
+	insertData := models.UserStruct{
 		Id:          primitive.NewObjectID(),
 		EmployeeId:  models.GetEmployeeSeqNumber(),
 		FirstName:   data.GetFirstName(),
@@ -51,43 +51,43 @@ func InsertNewUser(data *server_proto.CreateUserRequest) (string, string) {
 		Email:       data.GetEmail(),
 		Designation: data.GetDesignation(),
 	}
-	_, err := user_collection.InsertOne(context.TODO(), insert_data)
+	_, err := userCollection.InsertOne(context.TODO(), insertData)
 	if err != nil {
 		log.Println(err)
 		return "", ""
 	}
-	return insert_data.Id.Hex(), insert_data.EmployeeId
+	return insertData.Id.Hex(), insertData.EmployeeId
 }
 
-func GetUserViaId(user_id string) (models.UserStruct, error) {
-	user_collection := get_user_collection()
+func GetUserViaId(userId string) (models.UserStruct, error) {
+	userCollection := getUserCollection()
 
-	id_obj, _ := primitive.ObjectIDFromHex(user_id)
-	filter := bson.M{"_id": id_obj}
+	idObj, _ := primitive.ObjectIDFromHex(userId)
+	filter := bson.M{"_id": idObj}
 
-	var res_user models.UserStruct
-	err := user_collection.FindOne(context.TODO(), filter).Decode(&res_user)
+	var resUser models.UserStruct
+	err := userCollection.FindOne(context.TODO(), filter).Decode(&resUser)
 	if err != nil {
 		log.Println(err)
 	}
-	return res_user, err
+	return resUser, err
 }
 
 func UpdateUser(data *server_proto.UpdateUserRequest) (models.UserStruct, error) {
-	user_collection := get_user_collection()
+	userCollection := getUserCollection()
 
 	id, _ := primitive.ObjectIDFromHex(data.GetUserId())
 
-	update_data := models.UserStruct{
+	updateData := models.UserStruct{
 		Id:    id,
 		Email: data.GetEmail(),
 	}
-	filter := bson.M{"_id": update_data.Id}
+	filter := bson.M{"_id": updateData.Id}
 	update := bson.M{
-		"$set": bson.M{"email": update_data.Email},
+		"$set": bson.M{"email": updateData.Email},
 	}
 
-	_, err := user_collection.UpdateOne(context.TODO(), filter, update)
+	_, err := userCollection.UpdateOne(context.TODO(), filter, update)
 	if err != nil {
 		log.Println(err)
 	}

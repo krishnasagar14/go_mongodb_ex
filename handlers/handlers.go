@@ -13,13 +13,13 @@ import (
 )
 
 func GetUserHandler(resp http.ResponseWriter, req *http.Request) {
-	proto_body_raw, _ := req.URL.Query()["proto_body"]
-	if proto_body_raw == nil || len(proto_body_raw[0]) < 1 {
+	protoBodyRaw, _ := req.URL.Query()["proto_body"]
+	if protoBodyRaw == nil || len(protoBodyRaw[0]) < 1 {
 		log.Println("Proto body is missing")
 		resp.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	proto_body, err := b64.URLEncoding.DecodeString(proto_body_raw[0])
+	protoBody, err := b64.URLEncoding.DecodeString(protoBodyRaw[0])
 	if err != nil {
 		log.Println("Proto body decoding problem found: %v", err)
 		resp.WriteHeader(http.StatusBadRequest)
@@ -27,25 +27,25 @@ func GetUserHandler(resp http.ResponseWriter, req *http.Request) {
 	}
 
 	request := &server_proto.GetUserRequest{}
-	proto.Unmarshal(proto_body, request)
+	proto.Unmarshal(protoBody, request)
 	user_id := request.GetUserId()
 	if user_id == "" {
 		log.Println("No user id found")
 		resp.WriteHeader(http.StatusNotFound)
 		return
 	}
-	user_record, err := db.GetUserViaId(user_id)
+	userRecord, err := db.GetUserViaId(user_id)
 	if err != nil {
 		resp.WriteHeader(http.StatusNotFound)
 		return
 	}
 	res := &server_proto.UserDetailsResponse{
-		UserId:      user_record.Id.Hex(),
-		EmployeeId:  user_record.EmployeeId,
-		FirstName:   user_record.FirstName,
-		LastName:    user_record.LastName,
-		Email:       user_record.Email,
-		Designation: user_record.Designation,
+		UserId:      userRecord.Id.Hex(),
+		EmployeeId:  userRecord.EmployeeId,
+		FirstName:   userRecord.FirstName,
+		LastName:    userRecord.LastName,
+		Email:       userRecord.Email,
+		Designation: userRecord.Designation,
 	}
 	response, err := proto.Marshal(res)
 	if err != nil {
@@ -71,18 +71,18 @@ func UpdateUserHandler(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 	proto.Unmarshal(data, request)
-	updated_user, err := db.UpdateUser(request)
+	updatedUser, err := db.UpdateUser(request)
 	if err != nil {
 		resp.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	res := &server_proto.UserDetailsResponse{
-		UserId:      updated_user.Id.Hex(),
-		EmployeeId:  updated_user.EmployeeId,
-		FirstName:   updated_user.FirstName,
-		LastName:    updated_user.LastName,
-		Email:       updated_user.Email,
-		Designation: updated_user.Designation,
+		UserId:      updatedUser.Id.Hex(),
+		EmployeeId:  updatedUser.EmployeeId,
+		FirstName:   updatedUser.FirstName,
+		LastName:    updatedUser.LastName,
+		Email:       updatedUser.Email,
+		Designation: updatedUser.Designation,
 	}
 	response, err := proto.Marshal(res)
 	if err != nil {
@@ -108,14 +108,14 @@ func CreateUserHandler(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 	proto.Unmarshal(data, request)
-	new_id, emp_id := db.InsertNewUser(request)
-	if new_id == "" || emp_id == "" {
+	newId, empId := db.InsertNewUser(request)
+	if newId == "" || empId == "" {
 		resp.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	res := &server_proto.UserDetailsResponse{
-		UserId:      new_id,
-		EmployeeId:  emp_id,
+		UserId:      newId,
+		EmployeeId:  empId,
 		FirstName:   request.GetFirstName(),
 		LastName:    request.GetLastName(),
 		Email:       request.GetEmail(),
