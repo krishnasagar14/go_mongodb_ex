@@ -105,8 +105,8 @@ func MakeGetRequest(userId string) *server_proto.UserDetailsResponse {
 func main() {
 	postResp := MakePostRequest()
 	fmt.Printf("Response from POST API is : %v\n", postResp)
-	patchResp := MakePatchRequest(resp.UserId)
+	patchResp := MakePatchRequest(postResp.UserId)
 	fmt.Printf("Response from PATCH API is : %v\n", patchResp)
-	getResp := MakeGetRequest(resp.UserId)
+	getResp := MakeGetRequest(postResp.UserId)
 	fmt.Printf("Response from GET API is : %v\n", getResp)
 }
